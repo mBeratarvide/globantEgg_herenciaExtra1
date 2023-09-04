@@ -54,8 +54,10 @@ public class AlquilerServicio {
 
     private void nuevoAlquiler() {
         Alquiler<Embarcacion> a = llenarFormulario();
-        a.setAmarre(elegirEmbarcacion(a));
-        alquileres.add(a);
+        if(a != null) {
+            a.setAmarre(elegirEmbarcacion(a));
+            alquileres.add(a);
+        }
     }
 
     private void finalizarAlquiler() {
@@ -67,11 +69,15 @@ public class AlquilerServicio {
             Lector.leer().nextLine();
 
             if (a != null) {
-                a.setFechaDevolucion(LocalDate.now());
-                if (totalDiasDeAlquiler(a) < 1) {
-                    System.out.println("Hay un problema con su registro, llame a sistemas (cuak)");
+                if(a.getFechaDevolucion() == null) {
+                    a.setFechaDevolucion(LocalDate.now());
+                    if (totalDiasDeAlquiler(a) < 1) {
+                        System.out.println("Hay un problema con su registro, llame a sistemas (cuak)");
+                    } else {
+                        System.out.println("Debe abonar $" + calcularAlquiler(a));
+                    }
                 } else {
-                    System.out.println("Debe abonar $" + calcularAlquiler(a));
+                    System.out.println("Este alquiler ya está finalizado :B");
                 }
             }
         }
@@ -88,12 +94,18 @@ public class AlquilerServicio {
     private Alquiler<Embarcacion> llenarFormulario() {
         Alquiler<Embarcacion> a = new Alquiler<>();
 
-        System.out.print("Nombre: ");
-        a.setNombre(Lector.leer().nextLine());
-
         System.out.print("Nro documento: ");
         a.setDu(Lector.leer().nextInt());
         Lector.leer().nextLine();
+
+        Alquiler<Embarcacion> b = encontrarAlquilerPorDocumento(a.getDu());
+        if(b != null && b.getFechaDevolucion() != null) {
+            System.out.println("Este documento tiene un alquiler pendiente de finalización :B");
+            return null;
+        }
+
+        System.out.print("Nombre: ");
+        a.setNombre(Lector.leer().nextLine());
 
         System.out.println("Fecha del alquiler (YYYY-MM-DD): ");
         a.setFechaAlquiler(LocalDate.parse(Lector.leer().nextLine()));
